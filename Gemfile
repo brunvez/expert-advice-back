@@ -22,9 +22,11 @@ gem 'validates_email_format_of'
 gem 'api-pagination'
 
 group :development, :test do
+  gem 'database_cleaner', '~> 2.0'
   gem 'pry'
   gem 'rspec-rails'
   gem 'rubocop'
+  gem 'shoulda-matchers', '~> 4.5'
 end
 
 group :development do
