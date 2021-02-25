@@ -96,12 +96,14 @@ Style/ClassAndModuleChildren:
 # Offense count: 11
 Style/Documentation:
   Exclude:
+    - 'app/controllers/**/*'
+    - 'app/models/**/*'
+    - 'app/serializers/**/*'
     - 'spec/**/*'
     - 'test/**/*'
     - 'app/controllers/api/v1/api_controller.rb'
     - 'app/controllers/api/v1/users_controller.rb'
     - 'app/mailers/application_mailer.rb'
-    - 'app/models/**'
     - 'app/serializers/user_serializer.rb'
     - 'app/services/account_user.rb'
     - 'app/services/series_transforms.rb'
