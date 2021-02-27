@@ -21,5 +21,14 @@ module Api::V1
       @current_user ||=
         User.find(doorkeeper_token.resource_owner_id) if doorkeeper_token
     end
+
+    def pagination
+      per_page = (params[:per_page] || PER_PAGE).to_i
+      page = (params[:page] || 1).to_i
+      {
+        limit: per_page,
+        offset: (page - 1) * per_page
+      }
+    end
   end
 end

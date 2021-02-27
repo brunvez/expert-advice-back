@@ -3,6 +3,12 @@ module Api
     class QuestionsController < Api::V1::ApiController
       before_action :doorkeeper_authorize!, except: :index
 
+      def index
+        questions = paginate QuestionsQuery.new.all
+
+        render json: questions, each_serializer: QuestionSerializer
+      end
+
       def create
         question = QuestionCreation.new(title: question_params[:title],
                                         description: question_params[:description],

@@ -20,6 +20,7 @@ gem 'rack-cors'
 gem 'active_model_serializers'
 gem 'validates_email_format_of'
 gem 'api-pagination'
+gem 'kaminari', '~> 1.2'
 
 group :development, :test do
   gem 'database_cleaner', '~> 2.0'
