@@ -12,9 +12,29 @@ module Api
       def create
         question = QuestionCreation.new(title: question_params[:title],
                                         description: question_params[:description],
+                                        creator: current_user,
                                         tags: question_params[:tags] || []).call
 
         render json: question, status: :created
+      rescue ActiveRecord::RecordInvalid => e
+        render json: e.record,
+               status: :unprocessable_entity,
+               serializer: ActiveModel::Serializer::ErrorSerializer
+      end
+
+      def update
+        question = Question.find(params[:id])
+
+        QuestionEdition.new(question: question,
+                            title: question_params[:title],
+                            description: question_params[:description],
+                            tags: question_params[:tags],
+                            editor: current_user).call
+
+        render json: question
+      rescue QuestionEdition::InvalidEditor => e
+        render json: serialize_errors([e]),
+               status: :unauthorized
       rescue ActiveRecord::RecordInvalid => e
         render json: e.record,
                status: :unprocessable_entity,

@@ -5,4 +5,5 @@ class User < ApplicationRecord
 
   has_many :user_account_accesses
   has_many :accounts, through: :user_account_accesses
+  has_many :questions, foreign_key: :creator_id
 end

@@ -8,15 +8,13 @@ describe '/api/v1/questions' do
     context 'with pagination' do
       let(:params) do
         {
-          per_page: 2,
-          page: 1
+          page: {
+            number: 1,
+            size: 2
+          }
         }
       end
-      let!(:questions) do
-        4.times.collect do |i|
-          QuestionCreation.new(title: "Question #{i}", description: "Question #{i}", tags: Array(i)).call
-        end
-      end
+      let!(:questions) { create_list(:question, 4) }
 
       it 'is successful' do
         subject
@@ -29,7 +27,7 @@ describe '/api/v1/questions' do
         expect_questions = questions.last(2)
 
         expect(json).to include(
-          "data" => [
+          'data' => [
             a_hash_including('id' => expect_questions.last.id.to_s),
             a_hash_including('id' => expect_questions.first.id.to_s)
           ]
@@ -67,7 +65,7 @@ describe '/api/v1/questions' do
           subject
 
           expect(json).to include(
-            "data" => {
+            'data' => {
               'id' => match(/\d+/),
               'type' => 'questions',
               'attributes' => {
@@ -77,6 +75,107 @@ describe '/api/v1/questions' do
               }
             })
         end
+      end
+    end
+  end
+
+  describe 'PUT :id' do
+    subject { put api_v1_question_path(question), params: { data: { attributes: params } }.to_json, headers: headers }
+
+    let(:headers) { jsonapi_request_headers.merge(json_api_auth_headers(user: editor)) }
+    let(:question) { QuestionCreation.new(title: 'Title', description: 'Description', creator: creator, tags: %w(a b c)).call }
+
+    context 'when the editor is the creator of the question' do
+      let(:creator) { create(:user) }
+      let(:editor) { creator }
+
+      context 'when the attributes are valid' do
+        let(:params) do
+          {
+            title: 'Title 2',
+            description: 'Description 2',
+            tags: %w(a b c)
+          }
+        end
+
+        it 'returns a successful response' do
+          subject
+
+          expect(response).to be_successful
+          expect(json).to eq('data' => {
+            'id' => question.id.to_s,
+            'type' => 'questions',
+            'attributes' => {
+              'title' => 'Title 2',
+              'description' => 'Description 2',
+              'tags' => %w(a b c)
+            }
+          })
+        end
+
+        it 'updates the question' do
+          expect { subject }.to change { question.reload.title }.from('Title').to('Title 2')
+        end
+      end
+
+      context 'when the attributes are invalid' do
+        let(:params) do
+          {
+            title: '',
+            description: '',
+            tags: %w(a b c)
+          }
+        end
+
+        it 'return an unprocessable entity response' do
+          subject
+
+          expect(response.status).to eq(422)
+        end
+
+        it 'returns the errors' do
+          subject
+
+          expect(json).to eq('errors' => [
+            {
+              'source' => {
+                'pointer' => '/data/attributes/title'
+              },
+              'detail' => "can't be blank"
+            },
+            {
+              'source' => {
+                'pointer' => '/data/attributes/description'
+              },
+              'detail' => "can't be blank"
+            }])
+        end
+      end
+    end
+
+    context 'when the editor is not the creator of the question' do
+      let(:creator) { create(:user) }
+      let(:editor) { create(:user) }
+
+      let(:params) do
+        {
+          title: '',
+          description: '',
+          tags: %w(a b c)
+        }
+      end
+
+
+      it 'returns an unauthorized response' do
+        subject
+
+        expect(response.status).to eq(401)
+      end
+
+      it 'returns an error message' do
+        subject
+
+        expect(json).to eq('errors' => [{ 'title' => 'Only the creator of a question can edit it' }])
       end
     end
   end

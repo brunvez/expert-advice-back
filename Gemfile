@@ -28,6 +28,7 @@ group :development, :test do
   gem 'rspec-rails'
   gem 'rubocop'
   gem 'shoulda-matchers', '~> 4.5'
+  gem 'factory_bot_rails', '~> 5.2'
 end
 
 group :development do

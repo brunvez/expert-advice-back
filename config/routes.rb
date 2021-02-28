@@ -5,7 +5,7 @@ Rails.application.routes.draw do
     namespace :v1 do
       get '/users/me', to: 'users#me'
       resources :users
-      resources :questions, only: %i(index create)
+      resources :questions, only: %i(index create update)
     end
   end
 end

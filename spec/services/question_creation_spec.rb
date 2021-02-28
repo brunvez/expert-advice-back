@@ -1,11 +1,12 @@
 require 'rails_helper'
 
 RSpec.describe QuestionCreation do
-  subject { QuestionCreation.new(title: title, description: description, tags: tags).call }
+  subject { QuestionCreation.new(title: title, description: description, creator: creator, tags: tags).call }
 
   context 'with correct params' do
     let(:title) { 'How to code?' }
     let(:description) { 'Just type type type' }
+    let(:creator) { create(:user) }
     let(:tags) { %w(Code How-To) }
 
     it 'creates a question' do
@@ -14,6 +15,12 @@ RSpec.describe QuestionCreation do
       expect(question).to be_persisted
       expect(question.title).to eq(title)
       expect(question.description).to eq(description)
+    end
+
+    it 'associates the question to the user' do
+      question = subject
+
+      expect(creator.questions).to include(question)
     end
 
     it 'creates the tags for the question' do
@@ -46,6 +53,7 @@ RSpec.describe QuestionCreation do
   context 'with invalid parameters' do
     let(:title) { '' }
     let(:description) { '' }
+    let(:creator) { nil }
     let(:tags) { [] }
 
     it 'raises an invalid record error' do

@@ -30,5 +30,11 @@ module Api::V1
         offset: (page - 1) * per_page
       }
     end
+
+    def serialize_errors(errors)
+      {
+        errors: errors.map { |error| { title: error.message } }
+      }
+    end
   end
 end
