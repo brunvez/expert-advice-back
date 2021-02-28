@@ -27,11 +27,11 @@ describe '/api/v1/questions' do
         expect_questions = questions.last(2)
 
         expect(json).to include(
-          'data' => [
-            a_hash_including('id' => expect_questions.last.id.to_s),
-            a_hash_including('id' => expect_questions.first.id.to_s)
-          ]
-        )
+                          'data' => [
+                            a_hash_including('id' => expect_questions.last.id.to_s),
+                            a_hash_including('id' => expect_questions.first.id.to_s)
+                          ]
+                        )
       end
     end
   end
@@ -65,15 +65,15 @@ describe '/api/v1/questions' do
           subject
 
           expect(json).to include(
-            'data' => {
-              'id' => match(/\d+/),
-              'type' => 'questions',
-              'attributes' => {
-                'title' => 'Why?',
-                'description' => 'Because',
-                'tags' => %w(tag1 tag2)
-              }
-            })
+                            'data' => {
+                              'id' => match(/\d+/),
+                              'type' => 'questions',
+                              'attributes' => {
+                                'title' => 'Why?',
+                                'description' => 'Because',
+                                'tags' => %w(tag1 tag2)
+                              }
+                            })
         end
       end
     end
@@ -176,6 +176,57 @@ describe '/api/v1/questions' do
         subject
 
         expect(json).to eq('errors' => [{ 'title' => 'Only the creator of a question can edit it' }])
+      end
+    end
+  end
+
+  describe 'DELETE :id' do
+    subject { delete api_v1_question_path(question), headers: headers }
+
+    let(:headers) { jsonapi_request_headers.merge(json_api_auth_headers(user: user)) }
+    # tags need to be created in order to change
+    let!(:question) { QuestionCreation.new(title: 'Title', description: 'Description', creator: creator, tags: %w(a b c)).call }
+    let(:creator) { create(:user) }
+
+    context 'when the question belongs to the user' do
+      let(:user) { creator }
+
+      it 'returns a successful response' do
+        subject
+
+        expect(response).to be_successful
+      end
+
+      it 'destroys the question' do
+        subject
+
+        expect { question.reload }.to raise_error(ActiveRecord::RecordNotFound)
+      end
+
+      it 'cleans orphaned tags' do
+        expect { subject }.to change(Tag, :count).by(-3)
+      end
+    end
+
+    context 'when the question does not belong to the user' do
+      let(:user) { create(:user) }
+
+      it 'returns unauthorized' do
+        subject
+
+        expect(response.status).to eq(401)
+      end
+
+      it 'returns an error message' do
+        subject
+
+        expect(json).to eq('errors' => [{ 'title' => 'You cannot delete that question' }])
+      end
+
+      it 'does not destroy the question' do
+        subject
+
+        expect(Question.where(id: question.id)).to exist
       end
     end
   end

@@ -1,4 +1,4 @@
-# Creates questions with associated tasks
+# Updates a question and its associated tasks
 class QuestionEdition
   InvalidEditor = Class.new(StandardError)
 

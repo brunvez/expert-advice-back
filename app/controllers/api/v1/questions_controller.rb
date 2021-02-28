@@ -41,6 +41,16 @@ module Api
                serializer: ActiveModel::Serializer::ErrorSerializer
       end
 
+      def destroy
+        current_user.questions.find(params[:id]).destroy!
+        OrphanTagsCleaner.new.clean
+
+        render head: :no_content
+      rescue ActiveRecord::RecordNotFound
+        render json: serialize_errors([StandardError.new('You cannot delete that question')]),
+               status: :unauthorized
+      end
+
       private
 
       def question_params
