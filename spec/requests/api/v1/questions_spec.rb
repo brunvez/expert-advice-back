@@ -3,7 +3,14 @@ require 'rails_helper'
 describe '/api/v1/questions' do
 
   describe 'GET' do
-    subject { get '/api/v1/questions', params: params, headers: jsonapi_request_headers }
+    subject { get api_v1_questions_path, params: params, headers: jsonapi_request_headers }
+
+    let(:creator) { create(:user) }
+    let!(:questions) do
+      (1..4).collect do |i|
+        QuestionCreation.new(title: "Q #{i}", description: "D #{i}", creator: creator, tags: (1..i).to_a).call
+      end
+    end
 
     context 'with pagination' do
       let(:params) do
@@ -14,7 +21,6 @@ describe '/api/v1/questions' do
           }
         }
       end
-      let!(:questions) { create_list(:question, 4) }
 
       it 'is successful' do
         subject
@@ -34,10 +40,38 @@ describe '/api/v1/questions' do
                         )
       end
     end
+
+    context 'with a filter applied' do
+      let(:params) do
+        {
+          filter: {
+            tags: %w(3 4).join(',')
+          }
+        }
+      end
+
+      it 'is successful' do
+        subject
+
+        expect(response).to be_successful
+      end
+
+      it 'returns the tags that match the filter' do
+        subject
+        expect_questions = questions.last(2)
+
+        expect(json).to include(
+                          'data' => [
+                            a_hash_including('id' => expect_questions.last.id.to_s),
+                            a_hash_including('id' => expect_questions.first.id.to_s)
+                          ]
+                        )
+      end
+    end
   end
 
   describe 'POST' do
-    subject { post '/api/v1/questions', params: { data: { attributes: params } }.to_json, headers: headers }
+    subject { post api_v1_questions_path, params: { data: { attributes: params } }.to_json, headers: headers }
 
     context 'with a logged in user' do
       let(:headers) { jsonapi_request_headers.merge(json_api_auth_headers) }

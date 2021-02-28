@@ -4,7 +4,7 @@ module Api
       before_action :doorkeeper_authorize!, except: :index
 
       def index
-        questions = paginate QuestionsQuery.new.all
+        questions = paginate QuestionsQuery.new.all(filter: filter_params)
 
         render json: questions, each_serializer: QuestionSerializer
       end
@@ -55,6 +55,12 @@ module Api
 
       def question_params
         params.require(:data).require(:attributes).permit(:title, :description, tags: [])
+      end
+
+      def filter_params
+        {
+          tags: (params.dig(:filter, :tags) || '').split(',').map(&:strip)
+        }
       end
     end
   end

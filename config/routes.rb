@@ -6,6 +6,7 @@ Rails.application.routes.draw do
       get '/users/me', to: 'users#me'
       resources :users
       resources :questions, only: %i(index create update destroy)
+      resources :tags, only: %i(index)
     end
   end
 end
