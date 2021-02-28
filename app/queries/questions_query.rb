@@ -2,7 +2,7 @@
 # tags.
 class QuestionsQuery
   def all(filter: {})
-    apply_filter(Question.preload(:tags).order(created_at: :desc), filter)
+    apply_filter(Question.preload(:tags, :answers).order(created_at: :desc), filter)
   end
 
   private

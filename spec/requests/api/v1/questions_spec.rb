@@ -99,7 +99,7 @@ describe '/api/v1/questions' do
           subject
 
           expect(json).to include(
-                            'data' => {
+                            'data' => a_hash_including(
                               'id' => match(/\d+/),
                               'type' => 'questions',
                               'attributes' => {
@@ -107,7 +107,7 @@ describe '/api/v1/questions' do
                                 'description' => 'Because',
                                 'tags' => %w(tag1 tag2)
                               }
-                            })
+                            ))
         end
       end
     end
@@ -136,7 +136,7 @@ describe '/api/v1/questions' do
           subject
 
           expect(response).to be_successful
-          expect(json).to eq('data' => {
+          expect(json).to include('data' => a_hash_including(
             'id' => question.id.to_s,
             'type' => 'questions',
             'attributes' => {
@@ -144,7 +144,7 @@ describe '/api/v1/questions' do
               'description' => 'Description 2',
               'tags' => %w(a b c)
             }
-          })
+          ))
         end
 
         it 'updates the question' do
